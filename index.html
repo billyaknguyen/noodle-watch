@@ -859,9 +859,14 @@ let gunFireT=0;
 const inkOutlines=[];
 let inkT=0;
 (function handDrawn(){
-  // 4-tone cel gradient for toon shading
-  const tones=new Uint8Array([70,140,200,255]);
-  const gm=new THREE.DataTexture(tones,tones.length,1,THREE.RedFormat);
+  // 4-tone cel gradient for toon shading (RGBA gray — r128 samples .rgb, not .r)
+  const tones=new Uint8Array([
+    70,70,70,255,
+    140,140,140,255,
+    200,200,200,255,
+    255,255,255,255
+  ]);
+  const gm=new THREE.DataTexture(tones,4,1,THREE.RGBAFormat);
   gm.needsUpdate=true; gm.minFilter=THREE.NearestFilter; gm.magFilter=THREE.NearestFilter; gm.generateMipmaps=false;
   // convert every lambert material to toon
   scene.traverse(o=>{
