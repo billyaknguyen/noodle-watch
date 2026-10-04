@@ -92,8 +92,10 @@
   #finalScore { font-size:52px; color:#fff; text-shadow:0 0 20px #00e5ff; margin:8px 0; }
   .hidden { display:none !important; }
   #resume { z-index:19; }
-  /* hand-drawn grade + paper grain */
-  #game canvas { filter:sepia(.22) saturate(1.12) contrast(1.07) brightness(.98); }
+  /* hand-drawn grade + paper grain — cool moonlit night, no red sepia */
+  #game canvas { filter:saturate(1.07) contrast(1.06) brightness(1.01); }
+  #coolwash { position:fixed; inset:0; pointer-events:none; z-index:6;
+    background:linear-gradient(180deg, rgba(70,110,180,.10), rgba(30,50,110,.15)); }
   #grain { position:fixed; inset:0; pointer-events:none; z-index:7; opacity:.10; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E"); }
   .card h1 { font-family:'Segoe Print','Bradley Hand','Comic Sans MS',cursive; }
@@ -104,6 +106,7 @@
 <div id="game"></div>
 <div id="vignette"></div>
 <div id="grain"></div>
+<div id="coolwash"></div>
 <div id="damageFlash"></div>
 <div id="scream">GUNILAAA!!</div>
 <div id="crosshair"></div>
@@ -267,26 +270,91 @@ window.addEventListener('resize',()=>{
 
 // ---------- lights ----------
 scene.add(new THREE.AmbientLight(0x2a3348,0.55));
-const hallLight=new THREE.PointLight(0xff6a55,0.9,22); hallLight.position.set(-4,5.4,0); scene.add(hallLight);
+const hallLight=new THREE.PointLight(0x9db8e8,0.9,22); hallLight.position.set(-4,5.4,0); scene.add(hallLight);
 const roomLight=new THREE.PointLight(0x8fa8ff,0.85,16); roomLight.position.set(6,5.4,4); scene.add(roomLight);
 const girlRoomLight=new THREE.PointLight(0x9a6aff,0.6,14); girlRoomLight.position.set(-8,5.4,-4); scene.add(girlRoomLight);
 const kitchenLight=new THREE.PointLight(0xffe2b0,1.0,20); kitchenLight.position.set(7.5,2.6,-4); scene.add(kitchenLight);
 const muzzleLight=new THREE.PointLight(0x7df9ff,0,9); scene.add(muzzleLight);
 const shockLight=new THREE.PointLight(0x66ccff,0,14); scene.add(shockLight);
 
+// ---------- procedural textures ----------
+function makeTex(w,h,draw,rx,ry){
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx||1,ry||1);
+  return t;
+}
+function drawWood(g,w,h,base){
+  g.fillStyle=base; g.fillRect(0,0,w,h);
+  const rows=4;
+  for(let r=0;r<rows;r++){
+    const y=r*h/rows, lh=h/rows;
+    g.fillStyle='hsl('+(24+Math.random()*8)+','+(34+Math.random()*10)+'%,'+(34+Math.random()*10)+'%)';
+    g.fillRect(0,y,w,lh);
+    for(let i=0;i<12;i++){
+      g.strokeStyle='rgba(46,26,10,'+(0.2+Math.random()*0.25)+')';
+      g.lineWidth=1+Math.random()*1.5;
+      g.beginPath();
+      const gy=y+4+Math.random()*(lh-8);
+      g.moveTo(0,gy);
+      for(let x=0;x<=w;x+=32) g.lineTo(x,gy+Math.sin(x*0.04+i*1.7)*3+(Math.random()-0.5)*3);
+      g.stroke();
+    }
+    g.fillStyle='rgba(18,9,3,0.85)'; g.fillRect(0,y,w,3);
+    g.fillRect(Math.random()*w,y,3,lh);
+  }
+  for(let i=0;i<6;i++){
+    const kx=Math.random()*w, ky=Math.random()*h;
+    g.strokeStyle='rgba(40,22,8,0.5)'; g.lineWidth=2;
+    g.beginPath(); g.ellipse(kx,ky,8,5,0.4,0,7); g.stroke();
+  }
+}
+function drawRug(g,w,h,base,trim){
+  g.fillStyle=base; g.fillRect(0,0,w,h);
+  g.strokeStyle=trim; g.lineWidth=10; g.strokeRect(14,14,w-28,h-28);
+  g.lineWidth=4; g.strokeRect(34,34,w-68,h-68);
+  g.lineWidth=3;
+  for(let y=72;y<h-40;y+=44) for(let x=72;x<w-40;x+=44){
+    g.beginPath(); g.moveTo(x,y-14); g.lineTo(x+14,y); g.lineTo(x,y+14); g.lineTo(x-14,y);
+    g.closePath(); g.stroke();
+  }
+  for(let i=0;i<900;i++){ g.fillStyle='rgba(0,0,0,0.12)'; g.fillRect(Math.random()*w,Math.random()*h,2,2); }
+}
+const woodFloorTex=makeTex(512,512,(g,w,h)=>drawWood(g,w,h,'#6e4a2c'),5,4);
+const woodFurnTex=makeTex(512,512,(g,w,h)=>drawWood(g,w,h,'#5e3d24'),1,1);
+const wallTex=makeTex(256,256,(g,w,h)=>{
+  g.fillStyle='#7d8698'; g.fillRect(0,0,w,h);
+  for(let i=0;i<2200;i++){ const v=(Math.random()*26-13)|0;
+    g.fillStyle='rgba('+(125+v)+','+(134+v)+','+(152+v)+',0.3)';
+    g.fillRect(Math.random()*w,Math.random()*h,2,2); }
+  g.fillStyle='rgba(255,255,255,0.05)';
+  for(let x=0;x<w;x+=32) g.fillRect(x,0,13,h);
+  g.fillStyle='rgba(0,0,0,0.10)';
+  for(let x=16;x<w;x+=32) g.fillRect(x,0,2,h);
+},6,2);
+const rugTexA=makeTex(256,256,(g,w,h)=>drawRug(g,w,h,'#1f4a56','#c7a23c'),2,4);
+const rugTexB=makeTex(256,256,(g,w,h)=>drawRug(g,w,h,'#274a72','#d8d2c0'),2,2);
+const counterTex=makeTex(256,256,(g,w,h)=>{
+  g.fillStyle='#8f959e'; g.fillRect(0,0,w,h);
+  for(let i=0;i<3200;i++){ const v=(Math.random()*40)|0;
+    g.fillStyle='rgba('+(140+v)+','+(146+v)+','+(155+v)+',0.5)';
+    g.fillRect(Math.random()*w,Math.random()*h,2,2); }
+},2,2);
+
 // ---------- materials ----------
 const M={
-  wall:new THREE.MeshLambertMaterial({color:0x39404e}),
-  wallUp:new THREE.MeshLambertMaterial({color:0x333a47}),
-  floor:new THREE.MeshLambertMaterial({color:0x6b4a2f}),
-  floorUp:new THREE.MeshLambertMaterial({color:0x5e4128}),
+  wall:new THREE.MeshLambertMaterial({color:0xffffff,map:wallTex}),
+  wallUp:new THREE.MeshLambertMaterial({color:0xffffff,map:wallTex}),
+  floor:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
+  floorUp:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
   ceil:new THREE.MeshLambertMaterial({color:0x22262f}),
-  stair:new THREE.MeshLambertMaterial({color:0x4a3a28}),
+  stair:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFurnTex}),
   dark:new THREE.MeshLambertMaterial({color:0x14161c}),
-  wood:new THREE.MeshLambertMaterial({color:0x7a5230}),
-  counter:new THREE.MeshLambertMaterial({color:0x8a8f99}),
+  wood:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFurnTex}),
+  counter:new THREE.MeshLambertMaterial({color:0xffffff,map:counterTex}),
   mattress:new THREE.MeshLambertMaterial({color:0xb8c4d4}),
-  blanket:new THREE.MeshLambertMaterial({color:0x7a2f3f}),
+  blanket:new THREE.MeshLambertMaterial({color:0x2f6e7a}),
   screen:new THREE.MeshBasicMaterial({color:0x06121a}),
 };
 
@@ -331,12 +399,20 @@ box(0.12,1.0,4.2,M.dark,-5.05,4.2,5); box(0.12,1.0,4.2,M.dark,-2.95,4.2,5);
 // rail colliders (keep player from slipping off the stairs mid-way; gaps at top/bottom entries)
 addCollider(-5.25,3.4,-4.85,6.0); addCollider(-3.15,3.4,-2.75,6.0);
 
-// upstairs partition: girl bedroom west (x -10..-5.5), door gap at z=-1..0.5
-box(0.25,3,4.5,M.wallUp,-5.5,4.5,-4.75); // z -7..-2.5
-box(0.25,3,2.0,M.wallUp,-5.5,4.5,6.0);  // z 5..7  (gap z -2.5..5 is open hallway)
-// player room east partition with door gap
+// upstairs partition: girl bedroom west (x -10..-5.5) with a real doorway (z -4.75..-3.65)
+box(0.25,3,2.25,M.wallUp,-5.5,4.5,-5.875); // z -7..-4.75
+box(0.25,3,1.15,M.wallUp,-5.5,4.5,-3.075); // z -3.65..-2.5
+box(0.25,0.9,1.1,M.wallUp,-5.5,5.55,-4.2); // header above doorway
+box(0.25,3,2.0,M.wallUp,-5.5,4.5,6.0);     // z 5..7
+addCollider(-5.65,-7,-5.35,-4.75); addCollider(-5.65,-3.65,-5.35,-2.5); addCollider(-5.65,5,-5.35,7);
+// player room partition (x=3) with doorway (z 1..2.1)
 box(0.25,3,5.5,M.wallUp,3,4.5,-4.25);   // z -7..-1.5
-box(0.25,3,3.0,M.wallUp,3,4.5,5.5);     // z 4..7 (door gap -1.5..4)
+box(0.25,3,2.5,M.wallUp,3,4.5,-0.25);   // z -1.5..1
+box(0.25,3,1.9,M.wallUp,3,4.5,3.05);    // z 2.1..4
+box(0.25,3,3.0,M.wallUp,3,4.5,5.5);     // z 4..7
+box(0.25,0.9,1.1,M.wallUp,3,5.55,1.55); // header above doorway
+addCollider(2.85,-7,3.15,-1.5); addCollider(2.85,-1.5,3.15,1);
+addCollider(2.85,2.1,3.15,4); addCollider(2.85,4,3.15,7);
 
 // ---------- furniture ----------
 // girl bedroom: bed at (-8.5,3,-5.5)
@@ -378,8 +454,8 @@ scene.add(steam);
 box(2.6,0.6,1.0,M.blanket,-6,0.3,1.5); box(2.6,0.8,0.25,M.blanket,-6,0.9,1.0); addCollider(-7.3,1.0,-4.7,2.0);
 
 // ---------- decorations ----------
-const rugMat=new THREE.MeshLambertMaterial({color:0x6e2a35});
-const rugMat2=new THREE.MeshLambertMaterial({color:0x2a4a6e});
+const rugMat=new THREE.MeshLambertMaterial({color:0xffffff,map:rugTexA});
+const rugMat2=new THREE.MeshLambertMaterial({color:0xffffff,map:rugTexB});
 const creamMat=new THREE.MeshLambertMaterial({color:0xe8dcc0});
 const steelMat=new THREE.MeshLambertMaterial({color:0x9aa2ad});
 const leafMat=new THREE.MeshLambertMaterial({color:0x3f7a3a});
@@ -585,6 +661,53 @@ for(let i=0;i<3;i++){
   lf.position.set(-9+(i-1)*0.12,0.72,6+(i%2)*0.1-0.05); lf.rotation.z=(i-1)*0.35; scene.add(lf);
 }
 addCollider(-9.3,5.7,-8.7,6.3);
+
+// ---------- doors ----------
+// her bedroom door — swings open when she sneaks out, closes when she's back
+const doorPivot=new THREE.Group(); doorPivot.position.set(-5.5,3,-3.65); scene.add(doorPivot);
+const doorPanel=new THREE.Mesh(new THREE.BoxGeometry(0.09,2.1,1.06),M.wood);
+doorPanel.position.set(0,1.05,-0.53); doorPivot.add(doorPanel);
+const doorKnob=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,10),steelMat);
+doorKnob.position.set(0.09,1.02,-0.88); doorPivot.add(doorKnob);
+let doorOpen=0;
+// trim around her doorway
+box(0.36,2.3,0.14,M.wood,-5.5,4.15,-4.82);
+box(0.36,2.3,0.14,M.wood,-5.5,4.15,-3.58);
+box(0.36,0.14,1.38,M.wood,-5.5,5.32,-4.2);
+// player room door — standing open
+const pDoorPivot=new THREE.Group(); pDoorPivot.position.set(3,3,1.0); scene.add(pDoorPivot);
+const pDoor=new THREE.Mesh(new THREE.BoxGeometry(0.09,2.1,1.06),M.wood);
+pDoor.position.set(0,1.05,0.53); pDoorPivot.add(pDoor);
+const pKnob=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,10),steelMat);
+pKnob.position.set(-0.09,1.02,0.88); pDoorPivot.add(pKnob);
+pDoorPivot.rotation.y=1.85;
+box(0.36,2.3,0.14,M.wood,3,4.15,0.93);
+box(0.36,2.3,0.14,M.wood,3,4.15,2.17);
+box(0.36,0.14,1.38,M.wood,3,5.32,1.55);
+
+// ---------- baseboards ----------
+function baseboard(x1,z1,x2,z2,y){
+  const len=Math.hypot(x2-x1,z2-z1);
+  const b=new THREE.Mesh(new THREE.BoxGeometry(len,0.12,0.06),M.dark);
+  b.position.set((x1+x2)/2,y+0.06,(z1+z2)/2);
+  b.rotation.y=-Math.atan2(z2-z1,x2-x1);
+  scene.add(b);
+}
+baseboard(-9.82,-6.82,9.82,-6.82,0); baseboard(-9.82,6.82,9.82,6.82,0);
+baseboard(-9.82,-6.82,-9.82,6.82,0); baseboard(9.82,-6.82,9.82,6.82,0);
+baseboard(-9.82,-6.82,9.82,-6.82,3); baseboard(-9.82,6.82,9.82,6.82,3);
+baseboard(-9.82,-6.82,-9.82,6.82,3); baseboard(9.82,-6.82,9.82,6.82,3);
+
+// ---------- stair balusters + newel posts ----------
+for(let i=0;i<8;i++){
+  const z=3.5+i*0.4, ys=3-((z-3)/4)*3;
+  for(const bx of [-5.05,-2.95]){
+    const hgt=4.2-ys;
+    box(0.06,hgt,0.06,M.wood,bx,ys+hgt/2,z);
+  }
+}
+box(0.14,1.1,0.14,M.wood,-2.95,0.55,6.55); box(0.14,1.1,0.14,M.wood,-5.05,0.55,6.55);
+box(0.2,0.08,0.2,M.dark,-2.95,1.12,6.55); box(0.2,0.08,0.2,M.dark,-5.05,1.12,6.55);
 
 // ---------- terminal monitor (3D) ----------
 const termCanvas=document.createElement('canvas'); termCanvas.width=512; termCanvas.height=300;
@@ -1032,6 +1155,11 @@ function animate(){
   // arc fade
   if(arcTimer>0){ arcTimer-=dt; arc.material.opacity=Math.max(0,arcTimer/0.16); }
   shockLight.intensity=Math.max(0,shockLight.intensity-dt*8);
+
+  // her bedroom door swings with her state
+  const doorTarget=(npcState==='idle')?0:1;
+  doorOpen+=(doorTarget-doorOpen)*Math.min(1,dt*3);
+  doorPivot.rotation.y=doorOpen*1.9;
 
   // boiling ink lines — hand-drawn wobble
   inkT+=dt;
