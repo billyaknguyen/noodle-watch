@@ -395,25 +395,43 @@ function box(w,h,d,mat,x,y,z,parent){
 // ---------- house ----------
 // ground floor slab
 box(20,0.2,14,M.floor,0,-0.1,0);
-// upstairs floor with stair hole (hole: x -5..-3, z 3..7)
-box(20,0.2,10,M.floorUp,0,2.9,-2);          // z -7..3
-box(5,0.2,4,M.floorUp,-7.5,2.9,5);          // x -10..-5, z 3..7
-box(13,0.2,4,M.floorUp,3.5,2.9,5);          // x -3..10,  z 3..7
-// third floor with stair-B hole (hole: x -5..-3, z 3..7)
-box(20,0.2,10,M.ceil,0,6.1,-2);          // z -7..3
-box(5,0.2,4,M.ceil,-7.5,6.1,5);          // x -10..-5, z 3..7
-box(13,0.2,4,M.ceil,3.5,6.1,5);          // x -3..10,  z 3..7
+// second floor with CENTER stair shaft (hole: x -1..1, z -2..2)
+box(20,0.2,5,M.floorUp,0,2.9,-4.5);   // z -7..-2
+box(20,0.2,5,M.floorUp,0,2.9,4.5);    // z 2..7
+box(9,0.2,4,M.floorUp,-5.5,2.9,0);    // x -10..-1, z -2..2
+box(9,0.2,4,M.floorUp,5.5,2.9,0);     // x 1..10,  z -2..2
+// third floor with CENTER stair shaft (hole: x -1..1, z -2..2)
+box(20,0.2,5,M.ceil,0,6.1,-4.5);      // z -7..-2
+box(20,0.2,5,M.ceil,0,6.1,4.5);       // z 2..7
+box(9,0.2,4,M.ceil,-5.5,6.1,0);       // x -10..-1, z -2..2
+box(9,0.2,4,M.ceil,5.5,6.1,0);        // x 1..10,  z -2..2
 // roof
 box(21,0.35,15,M.ceil,0,9.35,0);
 // outer walls third floor (y 6..9)
 box(20,3,0.3,M.wallUp,0,7.5,-7); box(20,3,0.3,M.wallUp,0,7.5,7);
 box(0.3,3,14,M.wallUp,-10,7.5,0); box(0.3,3,14,M.wallUp,10,7.5,0);
-// stairs B: 10 steps from (z=3,y=6) down to (z=7,y=3), x -5..-3
-for(let i=0;i<10;i++){
-  const z=3.2+i*0.38, y=5.85-i*0.3;
-  box(2,0.18,0.42,M.stair,-4,y,z);
+// ---- center stairs: 12 steps, x -1..1, z 1.83 (bottom) -> -1.83 (top) ----
+function buildStairs(baseY){
+  for(let i=0;i<12;i++){
+    const z=1.833-i*0.333, y=baseY+0.125+i*0.25;
+    box(2,0.18,0.37,M.stair,0,y,z);
+  }
+  // sloped handrails + stringers + balusters, both sides
+  for(const sx of [-1.05,1.05]){
+    const r=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.09,5.2),M.wood);
+    r.position.set(sx,baseY+2.35,0); r.rotation.x=Math.atan2(3,4); scene.add(r);
+    const st=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.28,5.2),M.wood);
+    st.position.set(sx*0.88,baseY+1.3,0); st.rotation.x=Math.atan2(3,4); scene.add(st);
+    for(let k=0;k<7;k++){
+      const z=-1.5+k*0.5, ys=baseY+((2-z)/4)*3;
+      box(0.055,0.85,0.055,M.wood,sx,ys+0.425,z);
+    }
+  }
 }
-// (stair B handrails built with stairRail() above)
+buildStairs(0); // stair A: ground -> 2nd
+buildStairs(3); // stair B: 2nd -> 3rd
+// rail colliders (gaps at the north/south entries)
+addCollider(-1.35,-2,-0.65,2); addCollider(0.65,-2,1.35,2);
 // third-floor hall light
 const hallLight3=new THREE.PointLight(0xffd9a8,0.65,20); hallLight3.position.set(-2,8.2,1); scene.add(hallLight3);
 
@@ -424,30 +442,7 @@ box(0.3,3,14,M.wall,-10,1.5,0); box(0.3,3,14,M.wall,10,1.5,0);
 box(20,3,0.3,M.wallUp,0,4.5,-7); box(20,3,0.3,M.wallUp,0,4.5,7);
 box(0.3,3,14,M.wallUp,-10,4.5,0); box(0.3,3,14,M.wallUp,10,4.5,0);
 
-// stairs: 10 steps from (z=3,y=3) down to (z=7,y=0), x -5..-3
-for(let i=0;i<10;i++){
-  const z=3.2+i*0.38, y=2.85-i*0.3;
-  box(2,0.18,0.42,M.stair,-4,y,z);
-}
-// stair side rails (visual) — sloped to follow the steps
-function stairRail(x,topY){
-  const r=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.09,5),M.wood);
-  r.position.set(x,topY-0.6,5);
-  r.rotation.x=Math.atan2(3,4);
-  scene.add(r);
-}
-stairRail(-5.05,3); stairRail(-2.95,3); // stair A handrails
-stairRail(-5.05,6); stairRail(-2.95,6); // stair B handrails
-// balusters from each step up to its rail
-for(let i=0;i<8;i++){
-  const z=3.5+i*0.4;
-  for(const b of [[-5.05,3],[-2.95,3],[-5.05,6],[-2.95,6]]){
-    const ys=b[1]-((z-3)/4)*3;
-    box(0.055,0.9,0.055,M.wood,b[0],ys+0.45,z);
-  }
-}
-// rail colliders (keep player from slipping off the stairs mid-way; gaps at top/bottom entries)
-addCollider(-5.25,3.4,-4.85,6.0); addCollider(-3.15,3.4,-2.75,6.0);
+// (stairs now built by buildStairs() in the center shaft above)
 
 // upstairs partition: girl bedroom west (x -10..-5.5) with a real doorway (z -4.75..-3.65)
 box(0.25,3,2.25,M.wallUp,-5.5,4.5,-5.875); // z -7..-4.75
@@ -499,6 +494,14 @@ noodle.rotation.x=Math.PI/2; noodle.position.set(7.2,1.02,-3.2); scene.add(noodl
 const chopMat=new THREE.MeshLambertMaterial({color:0x8a5a2b});
 const ch1=box(0.03,0.03,0.5,chopMat,7.1,1.05,-3.2); ch1.rotation.y=0.4;
 const ch2=box(0.03,0.03,0.5,chopMat,7.3,1.05,-3.25); ch2.rotation.y=0.4;
+// instant noodle cup (anime item) beside the bowl
+const cupMat=new THREE.MeshLambertMaterial({color:0xf5f0e6});
+const cup=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.085,0.2,16),cupMat);
+cup.position.set(7.85,0.93,-2.95); scene.add(cup);
+const cupBand=new THREE.Mesh(new THREE.CylinderGeometry(0.112,0.092,0.1,16),new THREE.MeshLambertMaterial({color:0xe8641e}));
+cupBand.position.set(7.85,0.93,-2.95); scene.add(cupBand);
+const cupLid=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.02,16),cupMat);
+cupLid.position.set(7.85,1.04,-2.95); scene.add(cupLid);
 // steam particles
 const steamGeo=new THREE.BufferGeometry();
 const steamPos=new Float32Array(30*3);
@@ -820,119 +823,70 @@ function drawTerminal(){
   termTex.needsUpdate=true;
 }
 
-// ---------- NPC (3D character) ----------
+// ---------- NPC (anime sprite) ----------
+const npcTex={
+  idle:texLoader.load('sprites/girl_idle.png'),
+  walk1:texLoader.load('sprites/girl_walk1.png'),
+  walk2:texLoader.load('sprites/girl_walk2.png'),
+  shocked:texLoader.load('sprites/girl_shocked.png'),
+};
 const npc=new THREE.Group();
-(function buildNPC(){
-  const skinM=new THREE.MeshLambertMaterial({color:0xe6b48c});
-  const hairM=new THREE.MeshLambertMaterial({color:0x241610});
-  const hoodM=new THREE.MeshLambertMaterial({color:0xb9837a});   // dusty-rose hoodie
-  const hoodD=new THREE.MeshLambertMaterial({color:0x9a6b64});   // darker rose (shadow areas)
-  const pantsM=new THREE.MeshLambertMaterial({color:0x23262e});  // dark sweatpants
-  const shoeM=new THREE.MeshLambertMaterial({color:0x3a3d45});
-  const soleM=new THREE.MeshLambertMaterial({color:0xcfc8bb});
-  function limb(px,py,name,mat,r,len){
-    const g=new THREE.Group(); g.position.set(px,py,0); g.name=name;
-    const m=new THREE.Mesh(new THREE.CylinderGeometry(r*0.85,r,len,12),mat);
-    m.position.y=-len/2; g.add(m); npc.add(g); return g;
-  }
-  // legs (pivot at hip y=0.92)
-  limb(-0.11,0.92,'legL',pantsM,0.085,0.82); limb(0.11,0.92,'legR',pantsM,0.085,0.82);
-  // shoes
-  for(const sx of [-0.11,0.11]){
-    const sh=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.09,0.26),shoeM);
-    sh.position.set(sx,0.045,0.04); npc.add(sh);
-    const so=new THREE.Mesh(new THREE.BoxGeometry(0.135,0.03,0.27),soleM);
-    so.position.set(sx,0.015,0.04); npc.add(so);
-  }
-  // torso — hoodie (tapered)
-  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.245,0.62,16),hoodM);
-  torso.position.y=1.22; npc.add(torso);
-  // hoodie hem + pocket
-  const hem=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.26,0.10,16),hoodD);
-  hem.position.y=0.96; npc.add(hem);
-  const pocket=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.16,0.06),hoodD);
-  pocket.position.set(0,1.08,0.20); npc.add(pocket);
-  // shoulders
-  const sh2=new THREE.Mesh(new THREE.SphereGeometry(0.20,16,12),hoodM);
-  sh2.scale.set(1.25,0.55,0.85); sh2.position.y=1.50; npc.add(sh2);
-  // arms (pivot at shoulder y=1.46)
-  for(const [px,nm] of [[-0.30,'armL'],[0.30,'armR']]){
-    const g=limb(px,1.46,nm,hoodM,0.06,0.58);
-    const hand=new THREE.Mesh(new THREE.SphereGeometry(0.055,10,8),skinM);
-    hand.position.y=-0.62; g.add(hand);
-  }
-  // neck + head
-  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.06,0.10,10),skinM);
-  neck.position.y=1.60; npc.add(neck);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.145,20,16),skinM);
-  head.position.y=1.76; npc.add(head);
-  // hair — cap + bun
-  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.155,20,16,0,Math.PI*2,0,Math.PI*0.55),hairM);
-  cap.position.set(0,1.79,-0.02); cap.rotation.x=-0.25; npc.add(cap);
-  const bun=new THREE.Mesh(new THREE.SphereGeometry(0.085,14,12),hairM);
-  bun.position.set(0,1.93,-0.10); npc.add(bun);
-  const tail=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,8),hairM);
-  tail.scale.set(1,1.8,1); tail.position.set(0,1.68,-0.15); npc.add(tail);
-  // eyes (small, realistic)
-  const eyeM=new THREE.MeshBasicMaterial({color:0x1c1410});
-  for(const ex of [-0.055,0.055]){
-    const e=new THREE.Mesh(new THREE.SphereGeometry(0.017,8,8),eyeM);
-    e.position.set(ex,1.77,0.128); npc.add(e);
-  }
-  // brows
-  for(const ex of [-0.055,0.055]){
-    const b=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.012,0.01),hairM);
-    b.position.set(ex,1.83,0.132); b.rotation.z=ex>0?-0.1:0.1; npc.add(b);
-  }
-  npc.traverse(o=>{ o.frustumCulled=false; });
-})();
-scene.add(npc);
+const npcSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:npcTex.idle,transparent:true}));
+npcSprite.position.y=0.95; npcSprite.scale.set(1.4,1.9,1); npcSprite.frustumCulled=false; npc.add(npcSprite);
 // soft shadow blob at her feet
 const npcShadow=new THREE.Mesh(new THREE.CircleGeometry(0.42,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.35,depthWrite:false}));
-npcShadow.rotation.x=-Math.PI/2; npcShadow.position.y=0.02; npc.add(npcShadow);
+npcShadow.rotation.x=-Math.PI/2; npcShadow.position.y=0.02; npcShadow.userData.isInk=true; npc.add(npcShadow);
 // red glow light when she's on the move
 const npcGlow=new THREE.PointLight(0xff2a2a,0,7); npcGlow.position.y=1.2; npc.add(npcGlow);
+scene.add(npc);
 // glowing eyes toggle
 function setGlow(on){ npcGlow.intensity=on?1.6:0; }
+function setNpcFrame(name){ npcSprite.material.map=npcTex[name]; }
 
-// ---------- gun viewmodel (3D) ----------
-const gun=new THREE.Group();
-(function buildGun(){
-  const bodyM=new THREE.MeshLambertMaterial({color:0x2b3542});
-  const accM=new THREE.MeshLambertMaterial({color:0x00e5ff,emissive:0x1a5a66});
-  const gripM=new THREE.MeshLambertMaterial({color:0x161c25});
-  const gloveM=new THREE.MeshLambertMaterial({color:0x101319});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.13,0.40),bodyM); gun.add(body);
-  const slide=new THREE.Mesh(new THREE.BoxGeometry(0.095,0.05,0.34),gripM);
-  slide.position.set(0,0.075,-0.02); gun.add(slide);
-  const grip=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.17,0.10),gripM);
-  grip.position.set(0,-0.125,0.10); grip.rotation.x=0.28; gun.add(grip);
-  for(const px of [-0.03,0.03]){
-    const pr=new THREE.Mesh(new THREE.BoxGeometry(0.014,0.014,0.09),accM);
-    pr.position.set(px,0.045,-0.245); gun.add(pr);
-  }
-  const coil=new THREE.Mesh(new THREE.TorusGeometry(0.045,0.012,8,16),accM);
-  coil.position.set(0,0,-0.06); gun.add(coil); coil.name='coil';
-  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.018,10,10),
-    new THREE.MeshBasicMaterial({color:0x9df3ff}));
-  tip.position.set(0,0.045,-0.295); gun.add(tip); tip.name='tip';
-  // gloved hand gripping
-  const hand=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.11,0.15),gloveM);
-  hand.position.set(0,-0.105,0.085); hand.rotation.x=0.28; gun.add(hand);
-  const thumb=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.035,0.10),gloveM);
-  thumb.position.set(0.055,-0.03,0.02); thumb.rotation.y=-0.3; gun.add(thumb);
-  gun.traverse(o=>{ o.frustumCulled=false; });
-})();
-gun.position.set(0.32,-0.30,-0.55);
-gun.rotation.y=-0.06;
+// ---------- gun viewmodel (anime sprite, camera-attached) ----------
+const gunTexIdle=texLoader.load('sprites/gun_idle.png');
+const gunTexFire=texLoader.load('sprites/gun_fire.png');
+const gun=new THREE.Sprite(new THREE.SpriteMaterial({map:gunTexIdle,transparent:true,depthTest:false}));
+gun.position.set(0.42,-0.36,-0.9);
+gun.scale.set(0.62,0.85,1);
+gun.renderOrder=999; gun.frustumCulled=false;
 camera.add(gun);
 scene.add(camera);
+let gunFireT=0;
 
-// ---------- realistic look: smooth shading, no cel/toon, no ink outlines ----------
-// (materials stay as authored MeshLambertMaterial with painted/procedural maps)
+// ---------- hand-drawn look: cel shading + ink outlines + boiling lines ----------
 const inkOutlines=[];
 let inkT=0;
+(function handDrawn(){
+  // 4-tone cel gradient for toon shading
+  const tones=new Uint8Array([70,140,200,255]);
+  const gm=new THREE.DataTexture(tones,tones.length,1,THREE.RedFormat);
+  gm.needsUpdate=true; gm.minFilter=THREE.NearestFilter; gm.magFilter=THREE.NearestFilter; gm.generateMipmaps=false;
+  // convert every lambert material to toon
+  scene.traverse(o=>{
+    const mt=o.material;
+    if(o.isMesh&&mt&&mt.isMeshLambertMaterial){
+      const t=new THREE.MeshToonMaterial({color:mt.color,gradientMap:gm});
+      if(mt.map) t.map=mt.map;
+      if(mt.emissive!==undefined) t.emissive=mt.emissive;
+      o.material=t;
+    }
+  });
+  // ink outlines (inverted hull) for hero objects
+  const inkMat=new THREE.MeshBasicMaterial({color:0x0d0f16,side:THREE.BackSide});
+  function inkify(root,thick){
+    const meshes=[]; root.traverse(o=>{ if(o.isMesh&&!o.userData.isInk) meshes.push(o); });
+    for(const m of meshes){
+      const ol=new THREE.Mesh(m.geometry,inkMat);
+      ol.position.copy(m.position); ol.rotation.copy(m.rotation); ol.scale.copy(m.scale).multiplyScalar(thick);
+      ol.userData.isInk=true;
+      m.parent.add(ol);
+      inkOutlines.push({mesh:ol,base:ol.scale.clone(),phase:Math.random()*Math.PI*2});
+    }
+  }
+  inkify(npc,1.07); inkify(gun,1.12); inkify(bowl,1.15); inkify(soup,1.2); inkify(noodle,1.25); inkify(monBG,1.05);
+})();
 
 // ---------- difficulty ----------
 const DIFFS={
@@ -957,16 +911,17 @@ const BED=new THREE.Vector3(-8.3,6,-5);
 const waypoints=[
   new THREE.Vector3(-8.3,6,-5),
   new THREE.Vector3(-5.0,6,-4.2),   // through her bedroom door
-  new THREE.Vector3(-4.0,6,-0.5),
-  new THREE.Vector3(-4.0,6,2.6),    // stair B top
-  new THREE.Vector3(-4.0,3,6.9),    // stair B bottom (stair-snap rides the slope)
-  new THREE.Vector3(-2.0,3,6.2),    // around the rail end
-  new THREE.Vector3(-2.0,3,2.8),
-  new THREE.Vector3(-4.0,3,2.6),    // stair A top
-  new THREE.Vector3(-4.0,0,6.9),    // stair A bottom
-  new THREE.Vector3(-0.5,0,4.0),
-  new THREE.Vector3(3.5,0,0.5),
-  new THREE.Vector3(6.4,0,-2.4),    // at table
+  new THREE.Vector3(-4.0,6,-1.0),
+  new THREE.Vector3(-2.0,6,-1.8),
+  new THREE.Vector3(0,6,-2.6),      // stair B top (north entry)
+  new THREE.Vector3(0,3,2.6),       // stair B bottom (stair-snap rides the slope)
+  new THREE.Vector3(2.2,3,1.2),     // around the shaft, east side
+  new THREE.Vector3(2.2,3,-1.2),
+  new THREE.Vector3(0,3,-2.6),      // stair A top (north entry)
+  new THREE.Vector3(0,0,2.6),       // stair A bottom
+  new THREE.Vector3(2.5,0,1.0),
+  new THREE.Vector3(5.0,0,-1.5),
+  new THREE.Vector3(6.4,0,-2.4),     // at table
 ];
 function eqText(){ return eqA+' '+eqOp+' '+eqB; }
 
@@ -1005,12 +960,13 @@ function setStatus(txt,danger){
 }
 
 // ---------- floor / collision ----------
-// stair shafts: A (y 3->0) and B (y 6->3) share the x -5..-3, z 3..7 well
-function inShaft(x,z){ return x>-5.1&&x<-2.9&&z>3&&z<7.2; }
+// center stair shaft: x -1..1, z -2..2. Stair A (y 0->3) and B (y 3->6)
+// share the well; surface y = baseY + ((2-z)/4)*3
+function inShaft(x,z){ return x>-1.15&&x<1.15&&z>-2&&z<2.2; }
 function snapStairs(p){
   // ride the nearest stair surface so nobody clips through steps or slabs
   if(!inShaft(p.x,p.z)) return;
-  const sA=3-((p.z-3)/4)*3, sB=6-((p.z-3)/4)*3;
+  const sA=((2-p.z)/4)*3, sB=3+((2-p.z)/4)*3;
   const s=Math.abs(p.y-sA)<Math.abs(p.y-sB)?sA:sB;
   if(Math.abs(p.y-s)<1.4) p.y=s;
 }
@@ -1018,17 +974,14 @@ let playerFloorY=3; // tracks floor by continuity through the stairs
 function groundY(x,z){
   if(inShaft(x,z)){
     const feet=playerPos.y-1.6;
-    const sA=3-((z-3)/4)*3, sB=6-((z-3)/4)*3;
+    const sA=((2-z)/4)*3, sB=3+((2-z)/4)*3;
     const s=Math.abs(feet-sA)<Math.abs(feet-sB)?sA:sB;
     if(Math.abs(feet-s)<1.4){ playerFloorY=s>4.5?6:(s>1.5?3:0); return s; }
   }
   return playerFloorY;
 }
 function tryMove(nx,nz){
-  // the stair shaft (x -5..-3) runs to z=6.8 so you can reach the bottom step;
-  // the south wall stops you at 6.4 everywhere else
-  const zMax=(playerPos.x>-5.3&&playerPos.x<-2.7)?6.8:6.4;
-  nx=clamp(nx,-9.4,9.4); nz=clamp(nz,-6.4,zMax);
+  nx=clamp(nx,-9.4,9.4); nz=clamp(nz,-6.4,6.4);
   if(!hitsCollider(nx,playerPos.z)) playerPos.x=nx;
   if(!hitsCollider(playerPos.x,nz)) playerPos.z=nz;
   // keep player out of stair void when upstairs (can't walk off hole edge except via stairs)
@@ -1054,21 +1007,19 @@ function shockNPC(){
 }
 function updateNPC(dt){
   walkT+=dt;
-  const legL=npc.getObjectByName('legL'), legR=npc.getObjectByName('legR'),
-        armL=npc.getObjectByName('armL'), armR=npc.getObjectByName('armR');
   function animateWalk(){
-    const s=Math.sin(walkT*9)*0.5;
-    legL.rotation.x=s; legR.rotation.x=-s; armL.rotation.x=-s*0.6; armR.rotation.x=s*0.6;
-    npc.position.y+=Math.abs(Math.sin(walkT*9))*0.012;
+    const ph=Math.sin(walkT*9);
+    setNpcFrame(ph>0?'walk1':'walk2');
+    npc.position.y+=Math.abs(ph)*0.012;
     // footstep on each stride
     const stride=Math.floor(walkT*9/Math.PI);
     if(stride!==lastStride){ lastStride=stride; footstepSnd(); }
   }
   function animateIdle(){
-    legL.rotation.x*=0.9; legR.rotation.x*=0.9; armL.rotation.x*=0.9; armR.rotation.x*=0.9;
+    setNpcFrame('idle');
     npc.position.y+=Math.sin(walkT*2)*0.0015;
   }
-  if(npcState==='idle'){
+if(npcState==='idle'){
     animateIdle(); setGlow(false);
     npcIdleTimer-=dt;
     // face bedroom door, slight sway
@@ -1097,7 +1048,7 @@ function updateNPC(dt){
     npc.position.x+= (Math.random()-0.5)*0.06;
     npc.position.z+= (Math.random()-0.5)*0.06;
     npc.rotation.z=Math.sin(walkT*40)*0.08;
-    npc.scale.set(1+Math.random()*0.06,1-Math.random()*0.05,1+Math.random()*0.06);
+    setNpcFrame('shocked');
     shockLight.intensity=Math.max(0,shockLight.intensity-dt*6);
     npcShockTimer-=dt;
     if(npcShockTimer<=0){ npc.rotation.z=0; resetNPC(); }
@@ -1139,8 +1090,9 @@ function shoot(){
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   muzzleLight.position.add(dir.clone().multiplyScalar(0.7));
   muzzleLight.intensity=3;
-  gun.position.z=-0.48; // recoil
-  setTimeout(()=>gun.position.z=-0.55,90);
+  gun.position.z=-0.82; // recoil
+  gun.material.map=gunTexFire; gunFireT=0.14; // firing frame
+  setTimeout(()=>gun.position.z=-0.9,90);
   raycaster.setFromCamera({x:0,y:0},camera);
   const hits=raycaster.intersectObject(npc,true);
   let hit=false, end=null;
@@ -1240,9 +1192,8 @@ function animate(){
     }
     camera.position.copy(playerPos);
     camera.rotation.set(pitch,yaw,0);
-    // gun sway + idle coil spin
-    gun.position.y=-0.30+Math.sin(walkT*2)*0.004;
-    const coil=gun.getObjectByName('coil'); if(coil) coil.rotation.z+=dt*3;
+    // gun sway
+    gun.position.y=-0.36+Math.sin(walkT*2)*0.004;
 
     // cooldown
     if(cooldown>0){ cooldown=Math.max(0,cooldown-dt); }
@@ -1250,7 +1201,8 @@ function animate(){
     cooldownFill.style.width=pct+'%';
     if(cooldown<=0){ gunStateEl.textContent='READY'; gunStateEl.classList.remove('cooling'); }
     else { gunStateEl.textContent='CHARGING '+cooldown.toFixed(1)+'s'; gunStateEl.classList.add('cooling'); }
-    muzzleLight.intensity=Math.max(0,muzzleLight.intensity-dt*22);
+    if(gunFireT>0){ gunFireT-=dt; if(gunFireT<=0) gun.material.map=gunTexIdle; }
+  muzzleLight.intensity=Math.max(0,muzzleLight.intensity-dt*22);
 
     updateNPC(dt);
 
