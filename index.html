@@ -31,46 +31,48 @@
   #crosshair:before { left:10px; top:2px; width:2px; height:18px; }
   #crosshair:after { left:2px; top:10px; width:18px; height:2px; }
 
-  /* HUD */
-  #hud { position:fixed; inset:0; pointer-events:none; z-index:10; display:none; color:#cfe; }
+  /* HUD — hand-drawn comic (Messenger storybook) */
+  #hud { position:fixed; inset:0; pointer-events:none; z-index:10; display:none;
+    font-family:'Segoe Print','Bradley Hand','Comic Sans MS',cursive; }
   #topbar { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between;
     align-items:flex-start; padding:12px 16px; }
-  .panel { background:rgba(5,12,18,.78); border:1px solid #1e4d5c; border-radius:8px; padding:10px 14px;
-    box-shadow:0 0 18px rgba(0,229,255,.12); }
-  #scorePanel h2 { font-size:13px; color:#7df9ff; letter-spacing:2px; }
-  #scoreVal { font-size:34px; color:#fff; text-shadow:0 0 12px #00e5ff; }
+  .panel { background:#f7f0dd; border:3px solid #1a1a1a; border-radius:14px; padding:10px 14px;
+    box-shadow:3px 3px 0 #1a1a1a; }
+  #scorePanel h2 { font-size:13px; color:#2e8b9c; letter-spacing:2px; }
+  #scoreVal { font-size:34px; color:#1a1a1a; }
   #bestVal { font-size:11px; color:#5b7a86; }
 
   #mathPanel { text-align:center; min-width:300px; }
-  #mathPanel h2 { font-size:13px; color:#7df9ff; letter-spacing:2px; margin-bottom:6px; }
-  #equation { font-size:30px; color:#d8ff6a; text-shadow:0 0 10px rgba(216,255,106,.6); margin-bottom:8px; }
-  #answerBox { font-size:24px; min-height:38px; background:#06121a; border:1px solid #2b6b7d; border-radius:6px;
-    color:#fff; padding:4px 10px; letter-spacing:3px; }
-  #answerBox .cursor { display:inline-block; width:12px; animation:blink 1s steps(1) infinite; color:#7df9ff; }
+  #mathPanel h2 { font-size:13px; color:#2e8b9c; letter-spacing:2px; margin-bottom:6px; }
+  #equation { font-size:30px; color:#1a1a1a; margin-bottom:8px; }
+  #answerBox { font-size:24px; min-height:38px; background:#fffdf5; border:3px solid #1a1a1a; border-radius:10px;
+    color:#1a1a1a; padding:4px 10px; letter-spacing:3px; }
+  #answerBox .cursor { display:inline-block; width:12px; animation:blink 1s steps(1) infinite; color:#e84c3d; }
   @keyframes blink { 50% { opacity:0; } }
   #mathHint { font-size:10px; color:#5b7a86; margin-top:6px; }
   #diffRow { display:flex; gap:10px; justify-content:center; margin:12px 0 4px; }
   .diffbtn { pointer-events:auto; font-family:inherit; font-size:15px; letter-spacing:2px; padding:10px 24px;
-    border-radius:8px; background:#0a141b; color:#5b7a86; border:1px solid #1e4d5c; cursor:pointer; }
-  .diffbtn:hover { color:#7df9ff; border-color:#7df9ff; }
-  .diffbtn.selected { color:#06121a; background:#7df9ff; border-color:#7df9ff;
-    box-shadow:0 0 18px rgba(0,229,255,.5); font-weight:bold; }
+    border-radius:10px; background:#fffdf5; color:#5b7a86; border:3px solid #1a1a1a; cursor:pointer;
+    box-shadow:2px 2px 0 #1a1a1a; }
+  .diffbtn:hover { color:#1a1a1a; }
+  .diffbtn.selected { color:#f7f0dd; background:#e84c3d; border-color:#1a1a1a;
+    box-shadow:2px 2px 0 #1a1a1a; font-weight:bold; }
   #diffDesc { font-size:12px; color:#5b7a86; min-height:20px; }
-  #diffVal { font-size:11px; color:#d8ff6a; letter-spacing:2px; margin-top:4px; }
+  #diffVal { font-size:11px; color:#2e8b9c; letter-spacing:2px; margin-top:4px; }
 
-  #gunPanel h2 { font-size:13px; color:#7df9ff; letter-spacing:2px; margin-bottom:6px; }
-  #cooldownBar { width:170px; height:14px; background:#0a1a22; border:1px solid #2b6b7d; border-radius:7px; overflow:hidden; }
-  #cooldownFill { height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#7df9ff);
-    box-shadow:0 0 10px #00e5ff; transition:width .08s linear; }
-  #gunState { font-size:12px; margin-top:6px; color:#d8ff6a; }
-  #gunState.cooling { color:#ff9a5c; }
+  #gunPanel h2 { font-size:13px; color:#2e8b9c; letter-spacing:2px; margin-bottom:6px; }
+  #cooldownBar { width:170px; height:14px; background:#fffdf5; border:3px solid #1a1a1a; border-radius:8px; overflow:hidden; }
+  #cooldownFill { height:100%; width:100%; background:#2e8b9c; transition:width .08s linear; }
+  #gunState { font-size:12px; margin-top:6px; color:#2e8b9c; }
+  #gunState.cooling { color:#e84c3d; }
 
   #status { position:absolute; bottom:26px; left:50%; transform:translateX(-50%); text-align:center;
-    font-size:16px; padding:10px 22px; max-width:90vw; }
-  #status.danger { color:#ff5c5c; border-color:#7d1e1e; animation:pulse .7s infinite alternate; }
-  @keyframes pulse { from { box-shadow:0 0 8px rgba(255,60,60,.2);} to { box-shadow:0 0 26px rgba(255,60,60,.7);} }
+    font-size:16px; padding:10px 22px; max-width:90vw; color:#1a1a1a; }
+  #status.danger { color:#e84c3d; animation:pulse .7s infinite alternate; }
+  @keyframes pulse { from { box-shadow:3px 3px 0 #1a1a1a;} to { box-shadow:3px 3px 0 #e84c3d;} }
 
-  #controlsHint { position:absolute; bottom:8px; left:12px; font-size:10px; color:#3d5a66; }
+  #controlsHint { position:absolute; bottom:8px; left:12px; font-size:10px; color:#f7f0dd;
+    text-shadow:1px 1px 0 #1a1a1a; }
 
   .floatPts { position:fixed; color:#d8ff6a; font-size:26px; font-weight:bold; z-index:11;
     pointer-events:none; text-shadow:0 0 12px rgba(216,255,106,.8); animation:floatUp 1.1s ease-out forwards; }
@@ -78,18 +80,18 @@
 
   /* overlays */
   .overlay { position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
-    background:rgba(2,4,8,.92); color:#cfe; text-align:center; padding:20px; }
-  .card { max-width:640px; background:#0a1218; border:1px solid #1e4d5c; border-radius:14px; padding:38px 44px;
-    box-shadow:0 0 60px rgba(0,229,255,.12), inset 0 0 40px rgba(0,0,0,.6); }
-  .card h1 { font-size:42px; color:#ff5c5c; letter-spacing:4px; text-shadow:0 0 24px rgba(255,60,60,.6); margin-bottom:6px; }
-  .card h1.blue { color:#7df9ff; text-shadow:0 0 24px rgba(0,229,255,.6); }
-  .card p { font-size:14px; line-height:1.65; color:#9fb8c2; margin:12px 0; }
-  .card .keys { color:#d8ff6a; }
+    background:rgba(10,30,38,.88); text-align:center; padding:20px; }
+  .card { max-width:640px; background:#f7f0dd; border:4px solid #1a1a1a; border-radius:18px; padding:38px 44px;
+    box-shadow:6px 6px 0 #1a1a1a; font-family:'Segoe Print','Bradley Hand','Comic Sans MS',cursive; }
+  .card h1 { font-size:42px; color:#e84c3d; letter-spacing:4px; margin-bottom:6px; }
+  .card h1.blue { color:#2e8b9c; }
+  .card p { font-size:14px; line-height:1.65; color:#1a1a1a; margin:12px 0; }
+  .card .keys { color:#e84c3d; font-weight:bold; }
   .bigbtn { pointer-events:auto; cursor:pointer; margin-top:18px; font-family:inherit; font-size:20px; letter-spacing:2px;
-    background:linear-gradient(180deg,#0e3a46,#082530); color:#7df9ff; border:1px solid #00e5ff; border-radius:10px;
-    padding:14px 42px; text-shadow:0 0 10px rgba(0,229,255,.7); box-shadow:0 0 24px rgba(0,229,255,.25); }
-  .bigbtn:hover { background:linear-gradient(180deg,#155263,#0a3240); box-shadow:0 0 34px rgba(0,229,255,.5); }
-  #finalScore { font-size:52px; color:#fff; text-shadow:0 0 20px #00e5ff; margin:8px 0; }
+    background:#e84c3d; color:#f7f0dd; border:3px solid #1a1a1a; border-radius:12px;
+    padding:14px 42px; box-shadow:4px 4px 0 #1a1a1a; }
+  .bigbtn:hover { background:#f0604f; transform:translate(-1px,-1px); box-shadow:5px 5px 0 #1a1a1a; }
+  #finalScore { font-size:52px; color:#1a1a1a; margin:8px 0; }
   .hidden { display:none !important; }
   #resume { z-index:19; }
   /* hand-drawn grade + paper grain — warm cozy night */
@@ -266,7 +268,7 @@ function heartbeatSnd(){ beep(58,0.12,'sine',0.22); beep(52,0.14,'sine',0.2,0.18
 const container=$('game');
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x0d1020);
-scene.fog=new THREE.FogExp2(0x0d1020,0.030);
+scene.fog=new THREE.FogExp2(0x0e2a33,0.028);
 const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.05,120);
 camera.rotation.order='YXZ';
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -283,13 +285,13 @@ window.addEventListener('resize',()=>{
 });
 
 // ---------- lights ----------
-scene.add(new THREE.AmbientLight(0x50628c,0.6));
+scene.add(new THREE.AmbientLight(0x6a8a9c,0.75));
 const hallLight=new THREE.PointLight(0xffd9a8,0.7,22); hallLight.position.set(-4,5.4,0); scene.add(hallLight);
 const roomLight=new THREE.PointLight(0xffd9a8,0.6,16); roomLight.position.set(6,5.4,4); scene.add(roomLight);
 const girlRoomLight=new THREE.PointLight(0xffc890,0.6,14); girlRoomLight.position.set(-8,8.4,-4); scene.add(girlRoomLight);
 const kitchenLight=new THREE.PointLight(0xffe2b0,0.7,20); kitchenLight.position.set(7.5,2.6,-4); scene.add(kitchenLight);
 // cool moonlight through the window — anime night contrast against the warm lamps
-const moonLight=new THREE.PointLight(0x8ab0f0,0.75,22); moonLight.position.set(-6,4.5,-5.5); scene.add(moonLight);
+const moonLight=new THREE.PointLight(0x7ec8d8,0.85,22); moonLight.position.set(-6,4.5,-5.5); scene.add(moonLight);
 const muzzleLight=new THREE.PointLight(0x7df9ff,0,9); scene.add(muzzleLight);
 const shockLight=new THREE.PointLight(0x66ccff,0,14); scene.add(shockLight);
 
@@ -318,7 +320,12 @@ function drawWood(g,w,h,base){
       g.stroke();
     }
     g.fillStyle='rgba(18,9,3,0.85)'; g.fillRect(0,y,w,3);
-    g.fillRect(Math.random()*w,y,3,lh);
+  }
+  hatch(g,w,h,'#3a2412',200,0.20);
+  hatch(g,w,h,'#d8a86a',140,0.15);
+  for(let i=0;i<8;i++){
+    g.fillStyle='rgba(18,9,3,0.85)';
+    g.fillRect(Math.random()*w,(Math.random()*4|0)*h/4,3,h/4);
   }
   for(let i=0;i<6;i++){
     const kx=Math.random()*w, ky=Math.random()*h;
@@ -339,14 +346,23 @@ function drawRug(g,w,h,base,trim){
 }
 const woodFloorTex=makeTex(512,512,(g,w,h)=>drawWood(g,w,h,'#6e4a2c'),5,4);
 const woodFurnTex=makeTex(512,512,(g,w,h)=>drawWood(g,w,h,'#5e3d24'),1,1);
+// sketchy pencil-hatch strokes — the Messenger 'living sketchbook' look
+function hatch(g,w,h,color,n,alpha){
+  g.strokeStyle=color; g.lineWidth=1;
+  for(let i=0;i<n;i++){
+    const x=Math.random()*w, y=Math.random()*h, l=4+Math.random()*10, a=(Math.random()-0.5)*0.6;
+    g.globalAlpha=alpha*(0.5+Math.random()*0.5);
+    g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l); g.stroke();
+  }
+  g.globalAlpha=1;
+}
 const wallTex=makeTex(256,256,(g,w,h)=>{
-  g.fillStyle='#3d4c6e'; g.fillRect(0,0,w,h);
-  for(let i=0;i<2200;i++){ const v=(Math.random()*26-13)|0;
-    g.fillStyle='rgba('+(61+v)+','+(76+v)+','+(110+v)+',0.3)';
-    g.fillRect(Math.random()*w,Math.random()*h,2,2); }
-  g.fillStyle='rgba(255,255,255,0.05)';
+  g.fillStyle='#4e8b9c'; g.fillRect(0,0,w,h);   // soft teal
+  hatch(g,w,h,'#2e5a68',260,0.25);              // dark teal sketch strokes
+  hatch(g,w,h,'#a8d4de',180,0.20);              // pale teal highlights
+  g.fillStyle='rgba(255,255,255,0.06)';
   for(let x=0;x<w;x+=32) g.fillRect(x,0,13,h);
-  g.fillStyle='rgba(0,0,0,0.10)';
+  g.fillStyle='rgba(0,0,0,0.12)';
   for(let x=16;x<w;x+=32) g.fillRect(x,0,2,h);
 },6,2);
 const rugTexA=makeTex(256,256,(g,w,h)=>drawRug(g,w,h,'#1f4a56','#c7a23c'),2,4);
@@ -368,7 +384,7 @@ const M={
   wallUp:new THREE.MeshLambertMaterial({color:0xffffff,map:wallTex}),
   floor:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
   floorUp:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
-  ceil:new THREE.MeshLambertMaterial({color:0xc9d2e2}),
+  ceil:new THREE.MeshLambertMaterial({color:0xf2e8d5}),
   stair:new THREE.MeshLambertMaterial({color:0xffffff,map:texWoodPainted}),
   dark:new THREE.MeshLambertMaterial({color:0x14161c}),
   wood:new THREE.MeshLambertMaterial({color:0xffffff,map:texWoodPainted}),
