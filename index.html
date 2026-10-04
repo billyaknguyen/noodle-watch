@@ -92,10 +92,10 @@
   #finalScore { font-size:52px; color:#fff; text-shadow:0 0 20px #00e5ff; margin:8px 0; }
   .hidden { display:none !important; }
   #resume { z-index:19; }
-  /* hand-drawn grade + paper grain — cool moonlit night, no red sepia */
-  #game canvas { filter:saturate(1.07) contrast(1.06) brightness(1.01); }
+  /* hand-drawn grade + paper grain — warm cozy night */
+  #game canvas { filter:saturate(1.08) contrast(1.05) brightness(1.07); }
   #coolwash { position:fixed; inset:0; pointer-events:none; z-index:6;
-    background:linear-gradient(180deg, rgba(70,110,180,.10), rgba(30,50,110,.15)); }
+    background:linear-gradient(180deg, rgba(70,110,180,.03), rgba(30,50,110,.05)); }
   #grain { position:fixed; inset:0; pointer-events:none; z-index:7; opacity:.10; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E"); }
   .card h1 { font-family:'Segoe Print','Bradley Hand','Comic Sans MS',cursive; }
@@ -251,8 +251,8 @@ function heartbeatSnd(){ beep(58,0.12,'sine',0.22); beep(52,0.14,'sine',0.2,0.18
 // ---------- three setup ----------
 const container=$('game');
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x05060a);
-scene.fog=new THREE.FogExp2(0x05060a,0.045);
+scene.background=new THREE.Color(0x0d1020);
+scene.fog=new THREE.FogExp2(0x0d1020,0.030);
 const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.05,120);
 camera.rotation.order='YXZ';
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -269,11 +269,13 @@ window.addEventListener('resize',()=>{
 });
 
 // ---------- lights ----------
-scene.add(new THREE.AmbientLight(0x2a3348,0.55));
-const hallLight=new THREE.PointLight(0x9db8e8,0.9,22); hallLight.position.set(-4,5.4,0); scene.add(hallLight);
-const roomLight=new THREE.PointLight(0x8fa8ff,0.85,16); roomLight.position.set(6,5.4,4); scene.add(roomLight);
-const girlRoomLight=new THREE.PointLight(0x9a6aff,0.6,14); girlRoomLight.position.set(-8,8.4,-4); scene.add(girlRoomLight);
-const kitchenLight=new THREE.PointLight(0xffe2b0,1.0,20); kitchenLight.position.set(7.5,2.6,-4); scene.add(kitchenLight);
+scene.add(new THREE.AmbientLight(0x9a8874,0.85));
+const hallLight=new THREE.PointLight(0xffd9a8,1.15,22); hallLight.position.set(-4,5.4,0); scene.add(hallLight);
+const roomLight=new THREE.PointLight(0xffd9a8,1.0,16); roomLight.position.set(6,5.4,4); scene.add(roomLight);
+const girlRoomLight=new THREE.PointLight(0xffc890,0.85,14); girlRoomLight.position.set(-8,8.4,-4); scene.add(girlRoomLight);
+const kitchenLight=new THREE.PointLight(0xffe2b0,1.1,20); kitchenLight.position.set(7.5,2.6,-4); scene.add(kitchenLight);
+// cool moonlight through the window — anime night contrast against the warm lamps
+const moonLight=new THREE.PointLight(0x7a9bd8,0.6,18); moonLight.position.set(-6,4.5,-5.5); scene.add(moonLight);
 const muzzleLight=new THREE.PointLight(0x7df9ff,0,9); scene.add(muzzleLight);
 const shockLight=new THREE.PointLight(0x66ccff,0,14); scene.add(shockLight);
 
@@ -343,18 +345,22 @@ const counterTex=makeTex(256,256,(g,w,h)=>{
 },2,2);
 
 // ---------- materials ----------
+// hand-painted anime textures (external PNGs; inlined as data URIs at package time)
+const texLoader=new THREE.TextureLoader(); texLoader.crossOrigin='';
+const texWoodPainted=texLoader.load('sprites/tex_wood.png');
+const texFabricPainted=texLoader.load('sprites/tex_fabric.png');
 const M={
   wall:new THREE.MeshLambertMaterial({color:0xffffff,map:wallTex}),
   wallUp:new THREE.MeshLambertMaterial({color:0xffffff,map:wallTex}),
   floor:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
   floorUp:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),
-  ceil:new THREE.MeshLambertMaterial({color:0x22262f}),
-  stair:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFurnTex}),
+  ceil:new THREE.MeshLambertMaterial({color:0x8d8172}),
+  stair:new THREE.MeshLambertMaterial({color:0xffffff,map:texWoodPainted}),
   dark:new THREE.MeshLambertMaterial({color:0x14161c}),
-  wood:new THREE.MeshLambertMaterial({color:0xffffff,map:woodFurnTex}),
+  wood:new THREE.MeshLambertMaterial({color:0xffffff,map:texWoodPainted}),
   counter:new THREE.MeshLambertMaterial({color:0xffffff,map:counterTex}),
-  mattress:new THREE.MeshLambertMaterial({color:0xb8c4d4}),
-  blanket:new THREE.MeshLambertMaterial({color:0x2f6e7a}),
+  mattress:new THREE.MeshLambertMaterial({color:0xffffff,map:texFabricPainted}),
+  blanket:new THREE.MeshLambertMaterial({color:0xffffff,map:texFabricPainted}),
   screen:new THREE.MeshBasicMaterial({color:0x06121a}),
 };
 
@@ -394,9 +400,9 @@ for(let i=0;i<10;i++){
   box(2,0.18,0.42,M.stair,-4,y,z);
 }
 // stair B side rails (visual)
-box(0.12,1.0,4.2,M.dark,-5.05,7.2,5); box(0.12,1.0,4.2,M.dark,-2.95,7.2,5);
+box(0.12,1.0,4.2,M.wood,-5.05,7.2,5); box(0.12,1.0,4.2,M.wood,-2.95,7.2,5);
 // third-floor hall light
-const hallLight3=new THREE.PointLight(0x9db8e8,0.7,20); hallLight3.position.set(-2,8.2,1); scene.add(hallLight3);
+const hallLight3=new THREE.PointLight(0xffd9a8,0.9,20); hallLight3.position.set(-2,8.2,1); scene.add(hallLight3);
 
 // outer walls ground (h=3, centered y=1.5)
 box(20,3,0.3,M.wall,0,1.5,-7); box(20,3,0.3,M.wall,0,1.5,7);
@@ -411,7 +417,7 @@ for(let i=0;i<10;i++){
   box(2,0.18,0.42,M.stair,-4,y,z);
 }
 // stair side rails (visual)
-box(0.12,1.0,4.2,M.dark,-5.05,4.2,5); box(0.12,1.0,4.2,M.dark,-2.95,4.2,5);
+box(0.12,1.0,4.2,M.wood,-5.05,4.2,5); box(0.12,1.0,4.2,M.wood,-2.95,4.2,5);
 // rail colliders (keep player from slipping off the stairs mid-way; gaps at top/bottom entries)
 addCollider(-5.25,3.4,-4.85,6.0); addCollider(-3.15,3.4,-2.75,6.0);
 
@@ -755,6 +761,29 @@ for(let i=0;i<8;i++){ // stair B balusters (topY=6, rail at 7.2)
 box(0.14,1.1,0.14,M.wood,-2.95,0.55,6.55); box(0.14,1.1,0.14,M.wood,-5.05,0.55,6.55);
 box(0.2,0.08,0.2,M.dark,-2.95,1.12,6.55); box(0.2,0.08,0.2,M.dark,-5.05,1.12,6.55);
 
+// ---------- warm lamp glows (cozy anime night) ----------
+const glowTex=(function(){
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,4,64,64,64);
+  gr.addColorStop(0,'rgba(255,220,160,0.85)');
+  gr.addColorStop(0.4,'rgba(255,200,130,0.32)');
+  gr.addColorStop(1,'rgba(255,190,120,0)');
+  g.fillStyle=gr; g.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(c);
+})();
+function lampGlow(x,y,z,s){
+  const m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,
+    blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.8}));
+  m.position.set(x,y,z); m.scale.set(s,s,1); scene.add(m);
+}
+lampGlow(-7.8,1.62,0.2,1.7);   // floor lamp
+lampGlow(7.5,2.3,-4,2.2);      // kitchen
+lampGlow(-4,5.1,0,2.0);        // 2nd-floor hallway
+lampGlow(6,5.1,4,1.7);         // player room
+lampGlow(-8,7.7,-4,1.5);       // her room, top floor
+lampGlow(-2,7.9,1,2.0);        // 3rd-floor hallway
+
 // ---------- terminal monitor (3D) ----------
 const termCanvas=document.createElement('canvas'); termCanvas.width=512; termCanvas.height=300;
 const tctx=termCanvas.getContext('2d');
@@ -779,14 +808,14 @@ function drawTerminal(){
 
 // ---------- NPC (anime sprite) ----------
 const npcTex={
-  idle:new THREE.TextureLoader().load('sprites/girl_idle.png'),
-  walk1:new THREE.TextureLoader().load('sprites/girl_walk1.png'),
-  walk2:new THREE.TextureLoader().load('sprites/girl_walk2.png'),
-  shocked:new THREE.TextureLoader().load('sprites/girl_shocked.png'),
+  idle:texLoader.load('sprites/girl_idle.png'),
+  walk1:texLoader.load('sprites/girl_walk1.png'),
+  walk2:texLoader.load('sprites/girl_walk2.png'),
+  shocked:texLoader.load('sprites/girl_shocked.png'),
 };
 const npc=new THREE.Group();
 const npcSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:npcTex.idle,transparent:true}));
-npcSprite.position.y=0.95; npcSprite.scale.set(1.4,1.9,1); npc.add(npcSprite);
+npcSprite.position.y=0.95; npcSprite.scale.set(1.4,1.9,1); npcSprite.frustumCulled=false; npc.add(npcSprite);
 // soft shadow blob at her feet
 const npcShadow=new THREE.Mesh(new THREE.CircleGeometry(0.42,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.35,depthWrite:false}));
@@ -799,12 +828,12 @@ function setGlow(on){ npcGlow.intensity=on?1.6:0; }
 function setNpcFrame(name){ npcSprite.material.map=npcTex[name]; }
 
 // ---------- gun viewmodel (anime sprite, camera-attached) ----------
-const gunTexIdle=new THREE.TextureLoader().load('sprites/gun_idle.png');
-const gunTexFire=new THREE.TextureLoader().load('sprites/gun_fire.png');
+const gunTexIdle=texLoader.load('sprites/gun_idle.png');
+const gunTexFire=texLoader.load('sprites/gun_fire.png');
 const gun=new THREE.Sprite(new THREE.SpriteMaterial({map:gunTexIdle,transparent:true,depthTest:false}));
 gun.position.set(0.42,-0.36,-0.9);
 gun.scale.set(0.62,0.85,1);
-gun.renderOrder=999;
+gun.renderOrder=999; gun.frustumCulled=false;
 camera.add(gun);
 scene.add(camera);
 let gunFireT=0;
